@@ -4,6 +4,33 @@ This project develops a synchronous first-in, first-out (FIFO) buffer that store
 
 Verification is done in SystemVerilog. The project is built with Verilator and debugged with SystemVerilog assertions as well as GTKWave, which allows us to view waveforms of the build.
 
+```
+                 ┌──────────────────┐                   
+in_data─────────►│       MEM[]      ├──────────►out_data
+                 │DATA_WIDTH x DEPTH│                   
+                 └────▲─────────▲───┘                   
+                      │         │                       
+                  write_ptr  read_ptr                   
+                      │         │                       
+                 ┌────┘         └─────┐                 
+                 │                    │                 
+          ┌──────┴──────┐      ┌──────┴─────┐           
+          │Write Pointer│      │Read Pointer│           
+          └──────┬──────┘      └──────┬─────┘           
+                 │                    │                 
+                 └─────────┬──────────┘                 
+                           │                            
+                      ┌────┴────┐                       
+                      │Occupancy│                       
+                      │ Counter │                       
+                      └────┬────┘                       
+                           │                            
+                 ┌─────────┴─────────┐                  
+   in_valid──────►   Ready / Valid   ├─────►out_valid   
+   in_ready◄─────┤      Control      ◄──────out_ready   
+                 └───────────────────┘                  
+```
+
 ## Toolchain
 - SystemVerilog
 - Verilator
@@ -19,7 +46,7 @@ Verification is done in SystemVerilog. The project is built with Verilator and d
 A handshake occurs only when `valid && ready` is true. The buffer stores one payload and applies backpressure
 when it cannot store additional data. Output data and validity are maintained while the downstream consumer is
 stalled.
-#### Verificaton
+#### Verification
 Verified:
 - reset behavior
 - basic enqueue/dequeue operation
@@ -75,7 +102,7 @@ SystemVerilog functional coverage was not implemented due to incompatibility wit
 #### Verification Validation
 To verify that the testbench detects real design failures, the following bugs were injected.
 
-A stuck write pointer caused data corruption and was detected by a the scoreboard's expected output data check.
+A stuck write pointer caused data corruption and was detected by the scoreboard's expected output data check.
 
 Incorrect occupancy counter modification on dequeue transaction was detected by the directed single-entry test since the FIFO did not return to an empty state when the expected queue was empty.
 
